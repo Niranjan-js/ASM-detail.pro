@@ -1,16 +1,11 @@
 {
   "version": 2,
-  "buildCommand": "echo 'No build required for static HTML'",
+  "buildCommand": "echo 'Static site ready'",
   "outputDirectory": ".",
-  "rewrites": [
-    {
-      "source": "/:path*",
-      "destination": "/deepseek_html_20260616_7fc154 (1).html"
-    }
-  ],
+  "public": true,
   "headers": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

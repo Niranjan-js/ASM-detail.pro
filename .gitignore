@@ -1,8 +1,9 @@
 node_modules/
-.DS_Store
+.env
 .env.local
-.vercel
+.next
+out
+dist
+build
 *.log
-dist/
-build/
-.cache/
+.DS_Store

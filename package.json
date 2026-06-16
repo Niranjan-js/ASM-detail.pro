@@ -1,0 +1,17 @@
+{
+  "name": "asm-detail-pro",
+  "version": "1.0.0",
+  "description": "ASM Tool Architecture - Attack Surface Management Platform",
+  "scripts": {
+    "deploy": "vercel --prod",
+    "dev": "python -m http.server 8000"
+  },
+  "keywords": [
+    "asm",
+    "attack-surface",
+    "security",
+    "reconnaissance"
+  ],
+  "author": "Niranjan-js",
+  "license": "MIT"
+}

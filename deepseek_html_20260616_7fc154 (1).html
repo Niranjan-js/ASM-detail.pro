@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASM Tool Architecture - Attack Surface Management Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0D1B2A;
+            color: #E0E0E0;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #0D1B2A 0%, #1A2F4A 100%);
+            border-bottom: 2px solid #00ACC1;
+            padding: 28px 24px 20px;
+        }
+
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .logo span {
+            font-size: 32px;
+        }
+
+        .logo h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 12px;
+            color: #00ACC1;
+            letter-spacing: 3px;
+            font-weight: 600;
+        }
+
+        .description {
+            margin: 10px 0 0;
+            font-size: 13px;
+            color: #90A4AE;
+            max-width: 640px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .tab-btn {
+            padding: 7px 18px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #00ACC1;
+            color: #0D1B2A;
+        }
+
+        .tab-btn.inactive {
+            background: #1A2F4A;
+            color: #90A4AE;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        /* Layer Cards */
+        .layers-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .layer-card {
+            border-radius: 12px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.22s ease;
+        }
+
+        .layer-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 18px;
+        }
+
+        .layer-icon {
+            font-size: 20px;
+        }
+
+        .layer-info {
+            flex: 1;
+        }
+
+        .layer-label {
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .layer-short {
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .layer-arrow {
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        .layer-arrow.open {
+            transform: rotate(90deg);
+        }
+
+        .layer-expanded {
+            padding: 16px 18px;
+        }
+
+        .layer-detail {
+            margin: 0 0 14px;
+            font-size: 13px;
+            line-height: 1.6;
+            background: #fff;
+            color: #37474F;
+            padding: 10px 14px;
+            border-radius: 8px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 8px;
+        }
+
+        .tool-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 10px 13px;
+        }
+
+        .tool-name {
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .tool-desc {
+            font-size: 11px;
+            color: #546E7A;
+            line-height: 1.5;
+        }
+
+        /* Flow Steps */
+        .flow-container {
+            position: relative;
+        }
+
+        .vertical-line {
+            position: absolute;
+            left: 28px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, #1565C0, #E65100, #1B5E20, #0D47A1, #B71C1C, #4A148C, #C62828);
+            border-radius: 2px;
+        }
+
+        .flow-step {
+            display: flex;
+            gap: 18px;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .step-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 3px solid #0D1B2A;
+            z-index: 1;
+        }
+
+        .step-number {
+            font-weight: 900;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .step-card {
+            flex: 1;
+            background: #111E2D;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-top: 6px;
+        }
+
+        .step-title {
+            font-weight: 800;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .step-desc {
+            font-size: 12px;
+            color: #90A4AE;
+            line-height: 1.6;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #111E2D;
+            border-radius: 10px;
+            padding: 14px 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #607D8B;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* Principles */
+        .principles-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .principle-card {
+            display: flex;
+            gap: 12px;
+            background: #111E2D;
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+
+        .principle-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .principle-title {
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .principle-desc {
+            font-size: 11px;
+            color: #78909C;
+            line-height: 1.5;
+        }
+
+        /* Tech Table */
+        .tech-table {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #1E3A5F;
+        }
+
+        .tech-row {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1.4fr;
+            border-bottom: 1px solid #1E3A5F;
+        }
+
+        .tech-cell {
+            padding: 9px 12px;
+            font-size: 11px;
+        }
+
+        /* Security Grid */
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .security-card {
+            background: #111E2D;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .security-icon {
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+
+        .security-title {
+            font-weight: 700;
+            font-size: 12px;
+            color: #EF9A9A;
+            margin-bottom: 4px;
+        }
+
+        .security-desc {
+            font-size: 11px;
+            color: #78909C;
+            line-height: 1.4;
+        }
+
+        /* Pipeline */
+        .pipeline-container {
+            margin-top: 32px;
+            background: #111E2D;
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid #1E3A5F;
+        }
+
+        .pipeline-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .pipeline-from {
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .pipeline-arrow {
+            color: #455A64;
+            font-size: 11px;
+            font-style: italic;
+        }
+
+        .pipeline-to {
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 16px;
+            border-top: 1px solid #1E3A5F;
+            margin-top: 8px;
+            font-size: 10px;
+            color: #37474F;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        h2 {
+            color: #00ACC1;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            margin-top: 0;
+        }
+
+        h3 {
+            color: #B0BEC5;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .info-text {
+            color: #78909C;
+            font-size: 12px;
+            margin-bottom: 20px;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span>🛡️</span>
+                    <div>
+                        <h1>ASM TOOL ARCHITECTURE</h1>
+                        <p class="subtitle">SCALABLE · MODULAR · ASYNC · SECURE · EXTENSIBLE</p>
+                    </div>
+                </div>
+                <p class="description">A full-stack Attack Surface Management platform — click any layer below to explore its tools, technology choices, and role in the scan pipeline.</p>
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('layers')">🗂 Layers</button>
+                    <button class="tab-btn inactive" onclick="switchTab('flow')">🔄 Data Flow</button>
+                    <button class="tab-btn inactive" onclick="switchTab('summary')">📋 Summary</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Layers Tab -->
+            <div id="layersTab">
+                <p style="font-size: 12px; color: #607D8B; margin-bottom: 16px; margin-top: 0;" id="layerHint">Click a layer card to expand its tools and details</p>
+                <div class="layers-container" id="layersContainer"></div>
+            </div>
+
+            <!-- Flow Tab (Hidden by default) -->
+            <div id="flowTab" class="hidden">
+                <h2>End-to-End Scan Data Flow</h2>
+                <p class="info-text">How a single scan request travels through the entire platform — from trigger to final report.</p>
+                <div class="flow-container">
+                    <div class="vertical-line"></div>
+                    <div id="flowStepsContainer"></div>
+                </div>
+                <div class="pipeline-container">
+                    <h3 style="color: #00ACC1; font-size: 13px; margin: 0 0 16px; font-weight: 700;">🔄 Pipeline Architecture</h3>
+                    <div id="pipelineContainer"></div>
+                </div>
+            </div>
+
+            <!-- Summary Tab (Hidden by default) -->
+            <div id="summaryTab" class="hidden">
+                <h2>Architecture at a Glance</h2>
+                <div class="stats-grid" id="statsGrid"></div>
+                <h3>Core Design Principles</h3>
+                <div class="principles-container" id="principlesContainer"></div>
+                <h3>Technology Stack</h3>
+                <div class="tech-table" id="techTable"></div>
+                <h3 style="margin: 24px 0 10px;">Security & Access Controls</h3>
+                <div class="security-grid" id="securityGrid"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>ASM Platform · Complete Architecture · 2026</p>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const LAYERS = [
+            { id: "users", label: "USERS", color: "#2E7D32", bg: "#E8F5E9", border: "#66BB6A", icon: "👥", short: "Security Analysts · Pentesters · SOC Teams", tools: [{ name: "Security Analysts", desc: "Track vulnerabilities, prioritise fixes, generate compliance reports" }, { name: "Pentesters", desc: "Plan and review engagements using discovered assets and open ports" }, { name: "SOC Teams", desc: "Monitor the live dashboard for real-time attack surface changes" }], detail: "Three primary user personas interact with the platform through the Next.js frontend. Each user type has scoped RBAC roles controlling what data they can view and what actions they can perform." },
+            { id: "frontend", label: "NEXT.JS FRONTEND", color: "#1565C0", bg: "#E3F2FD", border: "#42A5F5", icon: "🖥️", short: "Dashboard · Targets · Scan Jobs · Assets · Findings · Reports · Settings", tools: [{ name: "Dashboard", desc: "KPI overview, risk score trends, real-time scan activity feed" }, { name: "Targets", desc: "Add domains / IP ranges, define scope, configure scheduling" }, { name: "Scan Jobs", desc: "Trigger scans, monitor live progress, view execution timelines" }, { name: "Assets", desc: "Browse all discovered hosts, subdomains, ports and services" }, { name: "Findings", desc: "Ranked vulnerability list with severity, CVE IDs and remediation status" }, { name: "Reports", desc: "Generate and download PDF / CSV / JSON reports per target or date range" }, { name: "Settings", desc: "Manage users, roles, API integrations and notification preferences" }], detail: "Built with Next.js 14 (React). Communicates with the FastAPI backend over REST API / JSON. The SPA is served via Nginx and supports real-time status polling for running scans." },
+            { id: "backend", label: "FASTAPI BACKEND + CORE SERVICES", color: "#00695C", bg: "#E0F2F1", border: "#26A69A", icon: "⚙️", short: "Auth · Targets · Scan Jobs · Assets · Results · Reports · Users · Validation · ORM · Security", tools: [{ name: "Auth API", desc: "JWT login, token refresh, password management" }, { name: "Targets API", desc: "CRUD for scan targets, scope definitions, scheduling config" }, { name: "Scan Jobs API", desc: "Create/cancel jobs, stream live status updates" }, { name: "Assets API", desc: "Query discovered assets, filter by type, host, date" }, { name: "Results API", desc: "Raw tool outputs linked to individual scan jobs" }, { name: "Reports API", desc: "Trigger report generation, track status, provide download links" }, { name: "Users API", desc: "User management, role assignment, permission scoping" }, { name: "Validation (Pydantic)", desc: "Schema enforcement on every request and response" }, { name: "ORM (SQLAlchemy)", desc: "Async database sessions with Alembic migrations" }, { name: "Security", desc: "passlib password hashing + python-jose JWT signing" }, { name: "Config", desc: "pydantic-settings — environment-based secrets management" }, { name: "Logging", desc: "Structured JSON logs via structlog / uvicorn request tracing" }, { name: "Exception Handling", desc: "Global FastAPI error handlers — consistent HTTP status codes" }], detail: "High-performance async Python framework. Auto-generates OpenAPI docs. All endpoints are protected by JWT middleware and RBAC guards. SQLAlchemy 2.0 async sessions connect to PostgreSQL." },
+            { id: "orchestrator", label: "SCAN ORCHESTRATOR", color: "#E65100", bg: "#FFF3E0", border: "#FFA726", icon: "🎯", short: "Job Scheduler · Pipeline Manager · Task Builder · Rate Limiter · Retry Manager · Status Tracker", tools: [{ name: "Job Scheduler", desc: "Cron-like scheduling for daily / weekly / monthly automated scans" }, { name: "Pipeline Manager", desc: "Enforces Discovery → Enumeration → Vulnerability execution chain" }, { name: "Task Builder", desc: "Generates per-tool Celery task payloads with full target context" }, { name: "Rate Limiter", desc: "Caps concurrent requests to external tools and APIs per target" }, { name: "Retry Manager", desc: "Exponential back-off retries for failed or timed-out tool tasks" }, { name: "Status Tracker", desc: "Real-time job status pushed to the frontend via polling API" }], detail: "The brain of the platform. Receives scan requests, decomposes them into tool-level tasks, manages dependency ordering, and feeds tasks into the Redis message queue for Celery workers to execute." },
+            { id: "queue", label: "REDIS + CELERY WORKERS", color: "#B71C1C", bg: "#FFEBEE", border: "#EF5350", icon: "⚡", short: "Broker + Result Backend · Horizontally Scalable Distributed Workers", tools: [{ name: "Redis Broker", desc: "In-memory message broker — stores the task queue and pub/sub channels" }, { name: "Result Backend", desc: "Stores task results temporarily until consumed by the API layer" }, { name: "Celery Workers", desc: "Python distributed task queue — each worker runs one tool against one target" }, { name: "Auto Scaling", desc: "Worker replica count adjusts dynamically via Docker Compose" }, { name: "Task Priorities", desc: "Vulnerability tasks run before enumeration retries in the queue" }, { name: "AOF Persistence", desc: "Redis Append-Only File ensures crash resilience for queued tasks" }], detail: "Redis acts as both the broker (where tasks are queued) and the result backend (where outcomes are stored). Celery workers are stateless containers that can be scaled horizontally without code changes." },
+            { id: "discovery", label: "DISCOVERY LAYER", color: "#1B5E20", bg: "#F1F8E9", border: "#66BB6A", icon: "🔍", short: "Subfinder · Amass · Assetfinder · Findomain", tools: [{ name: "Subfinder", desc: "Passive subdomain discovery via certificate transparency and DNS datasets" }, { name: "Amass", desc: "Active + passive DNS enumeration with ASN lookups and graph analysis" }, { name: "Assetfinder", desc: "Passive discovery through certificate transparency logs and web scraping" }, { name: "Findomain", desc: "Fast lightweight certificate transparency-based subdomain discovery" }], detail: "First stage of every scan. All four tools run in parallel targeting the same domain, then results are deduplicated. Using multiple tools maximises coverage because each queries different data sources." },
+            { id: "enumeration", label: "ENUMERATION LAYER", color: "#0D47A1", bg: "#E8EAF6", border: "#5C6BC0", icon: "📡", short: "HTTPX · Katana · GAU · Waybackurls · DNSX · Nmap", tools: [{ name: "HTTPX", desc: "HTTP probing — live host detection, status codes, response titles, technology headers" }, { name: "Katana", desc: "Active web crawler — discovers all linked URLs and API endpoints on live hosts" }, { name: "GAU", desc: "Historical URLs from Wayback Machine, AlienVault OTX and CommonCrawl" }, { name: "Waybackurls", desc: "Full URL history from the Wayback Machine CDX API for forgotten endpoints" }, { name: "DNSX", desc: "DNS resolution — A/CNAME/MX/TXT records, wildcard detection, zone enumeration" }, { name: "Nmap", desc: "Port scanning — open ports, service banners and OS fingerprinting" }], detail: "Second stage. Takes the raw subdomain list from Discovery and validates/characterises each asset. Determines alive hosts, open ports, running services and builds a complete URL inventory including historical paths." },
+            { id: "vulnerability", label: "VULNERABILITY LAYER", color: "#B71C1C", bg: "#FCE4EC", border: "#EF9A9A", icon: "🛡️", short: "Nuclei · SSL Scanner · Tech Detection · CloudBrute / S3Scanner", tools: [{ name: "Nuclei", desc: "Template-based scanner — 9,000+ templates covering CVEs, misconfigs, exposed panels, default credentials" }, { name: "SSL Scanner", desc: "TLS/SSL analysis — certificate validity, weak ciphers, HSTS, BEAST/POODLE/DROWN vulnerabilities" }, { name: "Tech Detection", desc: "WhatWeb + Wappalyzer fingerprint CMS, frameworks, CDN and server versions to map known CVEs" }, { name: "CloudBrute / S3Scanner", desc: "Discovers exposed S3 buckets, Azure Blob containers, GCS buckets and cloud misconfigurations" }], detail: "Third and final scan stage. Runs active security checks against the characterised hosts from Enumeration. All findings are stored in PostgreSQL with CVE ID, severity (Critical → Info) and raw evidence." },
+            { id: "database", label: "POSTGRESQL + FILE STORAGE", color: "#1A237E", bg: "#E8EAF6", border: "#3949AB", icon: "🗄️", short: "Targets · Domains · IPs · Technologies · Vulnerabilities · Audit Logs · Screenshots · Reports", tools: [{ name: "Targets", desc: "Scan target definitions, scope config and scheduling settings" }, { name: "Domains / Subdomains", desc: "Every discovered (sub)domain linked to a parent target" }, { name: "IPs / Ports", desc: "Live hosts with open port, protocol and service banner data" }, { name: "HTTP Info", desc: "HTTPX results — live URLs, response codes, titles and tech metadata" }, { name: "Technologies", desc: "Detected technologies and versions per host for CVE correlation" }, { name: "Vulnerabilities", desc: "All findings with CVE, CVSS score, severity and affected asset reference" }, { name: "Scan Jobs & Results", desc: "Full job tracking with status, tool name and raw output links" }, { name: "Users & Roles", desc: "RBAC user accounts with scoped role definitions" }, { name: "Audit Logs", desc: "Immutable log of every user action with timestamp, IP and resource" }, { name: "File Storage", desc: "Screenshots, raw tool outputs, generated PDF/CSV/JSON report files and evidence attachments" }], detail: "PostgreSQL is the single source of truth for all structured data, managed via SQLAlchemy ORM with Alembic schema migrations. File Storage (S3-compatible or local volume) holds binary artefacts." },
+            { id: "ai", label: "AI & RISK ENGINE", color: "#4A148C", bg: "#F3E5F5", border: "#AB47BC", icon: "🧠", short: "Risk Scoring · CVE Prioritisation · Attack Path Analysis · AI Recommendations", tools: [{ name: "Risk Scoring", desc: "0–100 composite risk score per asset factoring severity, exposure, criticality and recency" }, { name: "CVE Prioritisation", desc: "Reorders findings by EPSS exploitability probability, CVSS and CISA KEV list membership" }, { name: "Attack Path Analysis", desc: "Identifies finding chains that together enable lateral movement or privilege escalation" }, { name: "Asset Criticality", desc: "Tags assets as Critical/High/Medium based on role — login pages, admin panels, payment endpoints" }, { name: "AI Recommendations", desc: "Plain-English remediation guidance generated per finding group" }, { name: "Executive Summary", desc: "Auto-drafted management-ready summary of the overall security posture" }], detail: "Post-scan intelligence layer. Called by the backend after each scan completes. Fetches live EPSS scores and KEV list from NVD/CISA, then generates contextual risk scores and AI-driven recommendations." },
+            { id: "external", label: "EXTERNAL INTEGRATIONS", color: "#006064", bg: "#E0F7FA", border: "#26C6DA", icon: "🔗", short: "CVE/NVD/EPSS/KEV · VirusTotal · Shodan · WhoisXML/IPInfo · Slack/Email/Teams", tools: [{ name: "CVE / NVD / EPSS / KEV", desc: "Authoritative vulnerability details, CVSS scores, exploitability probability and known-exploited list" }, { name: "VirusTotal", desc: "Domain, IP and URL reputation checks with community threat intelligence" }, { name: "Shodan", desc: "Internet-wide scan data — open ports and service banners on public IPs" }, { name: "WhoisXML / IPInfo", desc: "WHOIS registration data, IP geolocation, ASN ownership and privacy detection" }, { name: "Slack / Email / Teams", desc: "Real-time push notifications for critical findings, scan completions and asset changes" }], detail: "The platform enriches its findings with live external intelligence feeds. Threat data is fetched asynchronously by Celery workers so enrichment never blocks the core scan pipeline." },
+            { id: "monitoring", label: "MONITORING & SCHEDULING", color: "#FF8F00", bg: "#FFF8E1", border: "#FFB300", icon: "⏱️", short: "Scheduled Runs · Change Detection · Continuous Monitoring · 24/7 Visibility", tools: [{ name: "Scheduled Runs", desc: "Daily, weekly or monthly automated scans via cron-like scheduler" }, { name: "Change Detection", desc: "Compares new scan results with previous to detect new assets, open ports or vulnerabilities" }, { name: "New Assets / Findings", desc: "Immediately flags any newly discovered subdomain, IP, or CVE" }, { name: "Continuous Monitoring", desc: "Re‑scans critical assets every hour for rapid threat discovery" }, { name: "24/7 Visibility", desc: "Live dashboard with real‑time status of all active and scheduled jobs" }], detail: "Keeps your attack surface under constant watch. The scheduler triggers scans automatically, while change detection ensures you never miss a new asset or vulnerability. All events are pushed to the alerting system." },
+            { id: "alerting", label: "ALERTING SYSTEM", color: "#C62828", bg: "#FFEBEE", border: "#EF5350", icon: "🔔", short: "Email · Slack · Teams · Webhook", tools: [{ name: "Email Alerts", desc: "SMTP delivery of critical findings, scan summaries and error reports" }, { name: "Slack / Teams Alerts", desc: "Rich notifications with direct links to findings and remediation steps" }, { name: "User Alerts", desc: "In‑app notification centre visible inside the Next.js dashboard" }, { name: "Webhook", desc: "POST JSON payloads to any custom endpoint for integration with SIEM or ticketing systems" }], detail: "Every high‑severity finding or scan completion triggers real‑time alerts. Users can configure per‑target notification rules and choose delivery channels." },
+            { id: "reporting", label: "REPORTING & OUTPUTS", color: "#283593", bg: "#E8EAF6", border: "#5C6BC0", icon: "📄", short: "PDF Reports · CSV Export · JSON Export", tools: [{ name: "PDF Reports", desc: "Professional, brandable security assessment reports with executive summary, methodology, and vulnerability tables" }, { name: "CSV Export", desc: "Raw data export for all assets, findings, ports and technologies" }, { name: "JSON Export", desc: "Machine‑readable format for API consumption and automated processing" }], detail: "Reports are generated on‑demand or automatically after each scan. They include asset lists, vulnerability details with CVSS scores, and remediation recommendations. Export formats support compliance needs (SOC2, ISO 27001)." },
+            { id: "infra", label: "INFRASTRUCTURE & DEPLOYMENT", color: "#263238", bg: "#ECEFF1", border: "#78909C", icon: "🚀", short: "Docker · Nginx · CI/CD · Prometheus/Grafana · Loki/ELK · Backup", tools: [{ name: "Docker Containers", desc: "Every service (FastAPI, Celery, Redis, Postgres, Next.js) runs in an isolated container" }, { name: "Docker Compose", desc: "Multi-service orchestration with shared networks, volume mounts and env config" }, { name: "Nginx Reverse Proxy", desc: "TLS termination, static asset serving, upstream routing to FastAPI and Next.js" }, { name: "CI/CD Pipeline", desc: "GitHub Actions — automated lint, test, build and deploy on every merge to main" }, { name: "Backup & Recovery", desc: "Nightly pg_dump backups to S3 with 30-day retention and one-click restore" }, { name: "Prometheus + Grafana", desc: "Metrics scraping from all services — dashboards for CPU, memory, scan throughput, error rates" }, { name: "Loki / ELK Stack", desc: "All container logs forwarded to central store with full-text search across services" }], detail: "Fully containerised deployment. Nginx sits in front of everything, CI/CD keeps deployments automated, Prometheus+Grafana provide operational visibility and Loki/ELK centralise all logs." }
+        ];
+
+        const FLOW_STEPS = [
+            { step: "1", title: "Trigger", desc: "Analyst creates scan job via Next.js → FastAPI validates and stores as PENDING", color: "#1565C0" },
+            { step: "2", title: "Orchestrate", desc: "Orchestrator builds task graph → pushes Discovery tasks to Redis queue", color: "#E65100" },
+            { step: "3", title: "Discovery", desc: "Celery workers run Subfinder/Amass/etc in parallel → ~200 subdomains stored in PostgreSQL", color: "#1B5E20" },
+            { step: "4", title: "Enumerate", desc: "HTTPX probes 200 hosts → 80 live → Nmap scans ports → DNSX resolves records", color: "#0D47A1" },
+            { step: "5", title: "Scan", desc: "Nuclei runs 9,000+ templates → SSL Scanner → Tech Detection → CloudBrute", color: "#B71C1C" },
+            { step: "6", title: "AI Enrich", desc: "Risk Engine fetches EPSS scores → calculates risk per asset → drafts exec summary", color: "#4A148C" },
+            { step: "7", title: "Alert & Report", desc: "Alerts sent via Slack/Email → PDF/CSV/JSON generated → Dashboard shows complete results", color: "#C62828" }
+        ];
+
+        const PIPELINE = [
+            ["USERS", "→", "Next.js Frontend", "#2E7D32", "#1565C0"],
+            ["Next.js Frontend", "REST API ↕", "FastAPI Backend", "#1565C0", "#00695C"],
+            ["FastAPI Backend", "→", "Scan Orchestrator", "#00695C", "#E65100"],
+            ["Scan Orchestrator", "→ queue →", "Redis Broker", "#E65100", "#B71C1C"],
+            ["Redis Broker", "→ workers →", "Celery Workers", "#B71C1C", "#B71C1C"],
+            ["Celery Workers", "→ runs →", "Discovery → Enum → Vuln", "#B71C1C", "#1B5E20"],
+            ["Discovery/Enum/Vuln", "→ stores →", "PostgreSQL + File Storage", "#1B5E20", "#1A237E"],
+            ["PostgreSQL", "→ enriches →", "AI & Risk Engine", "#1A237E", "#4A148C"],
+            ["AI & Risk Engine", "→ alerts & reports →", "Alerting + Reporting → Users", "#4A148C", "#C62828"]
+        ];
+
+        let activeLayer = null;
+
+        // Render Layers
+        function renderLayers() {
+            const container = document.getElementById('layersContainer');
+            container.innerHTML = LAYERS.map(layer => {
+                const isOpen = activeLayer === layer.id;
+                return `
+                    <div class="layer-card" style="border: 2px solid ${isOpen ? layer.color : layer.border}; background: ${isOpen ? layer.bg : '#111E2D'}; box-shadow: ${isOpen ? `0 0 0 3px ${layer.color}33` : 'none'};" onclick="toggleLayer('${layer.id}')">
+                        <div class="layer-header" style="background: ${isOpen ? layer.color : 'transparent'};">
+                            <span class="layer-icon">${layer.icon}</span>
+                            <div class="layer-info">
+                                <div class="layer-label" style="color: ${isOpen ? '#fff' : layer.border};">${layer.label}</div>
+                                <div class="layer-short" style="color: ${isOpen ? 'rgba(255,255,255,0.75)' : '#607D8B'};">${layer.short}</div>
+                            </div>
+                            <span class="layer-arrow ${isOpen ? 'open' : ''}" style="color: ${isOpen ? '#fff' : '#607D8B'};">›</span>
+                        </div>
+                        ${isOpen ? `
+                            <div class="layer-expanded">
+                                <div class="layer-detail" style="border-left: 4px solid ${layer.color};">${layer.detail}</div>
+                                <div class="tools-grid">
+                                    ${layer.tools.map(t => `
+                                        <div class="tool-card" style="border-left: 3px solid ${layer.color};">
+                                            <div class="tool-name" style="color: ${layer.color};">${t.name}</div>
+                                            <div class="tool-desc">${t.desc}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render Flow Steps
+        function renderFlowSteps() {
+            const container = document.getElementById('flowStepsContainer');
+            container.innerHTML = FLOW_STEPS.map(s => `
+                <div class="flow-step">
+                    <div class="step-circle" style="background: ${s.color};">
+                        <span class="step-number">${s.step}</span>
+                    </div>
+                    <div class="step-card" style="border: 1px solid ${s.color}55;">
+                        <div class="step-title" style="color: ${s.color};">${s.title}</div>
+                        <div class="step-desc">${s.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Pipeline
+        function renderPipeline() {
+            const container = document.getElementById('pipelineContainer');
+            container.innerHTML = PIPELINE.map(([from, arrow, to, fc, tc]) => `
+                <div class="pipeline-item">
+                    <span class="pipeline-from" style="background: ${fc}33; color: ${fc === '#B71C1C' ? '#EF9A9A' : fc}; border: 1px solid ${fc}55;">${from}</span>
+                    <span class="pipeline-arrow">${arrow}</span>
+                    <span class="pipeline-to" style="background: ${tc}33; color: ${tc === '#1A237E' ? '#7986CB' : tc}; border: 1px solid ${tc}55;">${to}</span>
+                </div>
+            `).join('');
+        }
+
+        // Render Stats
+        function renderStats() {
+            const container = document.getElementById('statsGrid');
+            container.innerHTML = `
+                <div class="stat-card" style="border: 1px solid #1565C055;"><div class="stat-number" style="color: #1565C0;">15+</div><div class="stat-label">Layers</div></div>
+                <div class="stat-card" style="border: 1px solid #1B5E2055;"><div class="stat-number" style="color: #1B5E20;">25+</div><div class="stat-label">Open‑source tools</div></div>
+                <div class="stat-card" style="border: 1px solid #B71C1C55;"><div class="stat-number" style="color: #B71C1C;">9,000+</div><div class="stat-label">Nuclei templates</div></div>
+                <div class="stat-card" style="border: 1px solid #00695C55;"><div class="stat-number" style="color: #00695C;">7</div><div class="stat-label">API endpoints</div></div>
+                <div class="stat-card" style="border: 1px solid #00606455;"><div class="stat-number" style="color: #006064;">5</div><div class="stat-label">External feeds</div></div>
+                <div class="stat-card" style="border: 1px solid #4A148C55;"><div class="stat-number" style="color: #4A148C;">3</div><div class="stat-label">Report formats</div></div>
+                <div class="stat-card" style="border: 1px solid #C6282855;"><div class="stat-number" style="color: #C62828;">4</div><div class="stat-label">Alert channels</div></div>
+            `;
+        }
+
+        // Render Principles
+        function renderPrinciples() {
+            const container = document.getElementById('principlesContainer');
+            const principles = [
+                ["⚡", "Async-first", "Every scan runs via Celery workers — the UI never blocks, scans run fully in the background.", "#E65100"],
+                ["📐", "Modular layers", "Discovery, Enumeration and Vulnerability are independent — add new tools without touching other layers.", "#1565C0"],
+                ["📈", "Horizontally scalable", "Spin up more Celery workers as Docker containers — throughput scales with workload.", "#1B5E20"],
+                ["🔒", "Secure by design", "JWT auth, RBAC, API rate limiting and immutable audit logs are framework-level, not add-ons.", "#B71C1C"],
+                ["🧠", "AI-augmented", "EPSS-based CVE prioritisation, attack path analysis and auto-generated executive summaries.", "#4A148C"],
+                ["⏱️", "Continuous monitoring", "Scheduled scans + change detection ensure 24/7 visibility of your attack surface.", "#FF8F00"]
+            ];
+            container.innerHTML = principles.map(([icon, title, desc, color]) => `
+                <div class="principle-card" style="border: 1px solid ${color}44;">
+                    <span class="principle-icon">${icon}</span>
+                    <div>
+                        <div class="principle-title" style="color: ${color};">${title}</div>
+                        <div class="principle-desc">${desc}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Tech Table
+        function renderTechTable() {
+            const container = document.getElementById('techTable');
+            const tech = [
+                ["Layer", "Technology", "Role"],
+                ["Frontend", "Next.js 14", "React SPA with SSR"],
+                ["Backend", "FastAPI (Python)", "Async REST API"],
+                ["Task Queue", "Celery + Redis", "Distributed job execution"],
+                ["Database", "PostgreSQL", "Primary data store"],
+                ["ORM", "SQLAlchemy 2.0", "Async DB sessions"],
+                ["Validation", "Pydantic v2", "Schema enforcement"],
+                ["Auth", "JWT + passlib", "Secure token-based auth"],
+                ["Containers", "Docker + Compose", "Service orchestration"],
+                ["Proxy", "Nginx", "TLS + routing"],
+                ["Monitoring", "Prometheus + Grafana", "Metrics + dashboards"],
+                ["Logging", "Loki / ELK", "Centralised log search"]
+            ];
+            container.innerHTML = tech.map(([layer, techName, role], i) => `
+                <div class="tech-row" style="background: ${i === 0 ? '#1A2F4A' : (i % 2 === 0 ? '#111E2D' : '#0D1B2A')};">
+                    <div class="tech-cell" style="font-weight: ${i === 0 ? 700 : 400}; color: ${i === 0 ? '#00ACC1' : '#90A4AE'};">${layer}</div>
+                    <div class="tech-cell" style="font-weight: ${i === 0 ? 700 : 400}; color: ${i === 0 ? '#00ACC1' : '#80DEEA'};">${techName}</div>
+                    <div class="tech-cell" style="font-weight: ${i === 0 ? 700 : 400}; color: ${i === 0 ? '#00ACC1' : '#90A4AE'};">${role}</div>
+                </div>
+            `).join('');
+        }
+
+        // Render Security
+        function renderSecurity() {
+            const container = document.getElementById('securityGrid');
+            const security = [
+                ["🔑", "JWT Auth", "Short-lived access tokens + server-side refresh"],
+                ["👤", "RBAC", "Admin / Analyst / Viewer — scoped permissions"],
+                ["📋", "Audit Logs", "Immutable log of every action with timestamp + IP"],
+                ["🔐", "API Security", "Rate limiting, input sanitisation, CORS, CSP headers"]
+            ];
+            container.innerHTML = security.map(([icon, title, desc]) => `
+                <div class="security-card" style="border: 1px solid #B71C1C44;">
+                    <div class="security-icon">${icon}</div>
+                    <div class="security-title">${title}</div>
+                    <div class="security-desc">${desc}</div>
+                </div>
+            `).join('');
+        }
+
+        // Toggle Layer
+        window.toggleLayer = function(id) {
+            if (activeLayer === id) {
+                activeLayer = null;
+                document.getElementById('layerHint').innerHTML = 'Click a layer card to expand its tools and details';
+            } else {
+                activeLayer = id;
+                document.getElementById('layerHint').innerHTML = '← Click the same card to collapse | Click another layer to switch';
+            }
+            renderLayers();
+        };
+
+        // Switch Tab
+        window.switchTab = function(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('inactive');
+            });
+            event.target.classList.remove('inactive');
+            event.target.classList.add('active');
+            
+            // Show/hide tabs
+            document.getElementById('layersTab').classList.add('hidden');
+            document.getElementById('flowTab').classList.add('hidden');
+            document.getElementById('summaryTab').classList.add('hidden');
+            
+            if (tab === 'layers') {
+                document.getElementById('layersTab').classList.remove('hidden');
+                renderLayers();
+            } else if (tab === 'flow') {
+                document.getElementById('flowTab').classList.remove('hidden');
+                renderFlowSteps();
+                renderPipeline();
+            } else if (tab === 'summary') {
+                document.getElementById('summaryTab').classList.remove('hidden');
+                renderStats();
+                renderPrinciples();
+                renderTechTable();
+                renderSecurity();
+            }
+        };
+
+        // Initial render
+        renderLayers();
+    </script>
+</body>
+</html>
